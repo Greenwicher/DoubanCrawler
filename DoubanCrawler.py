@@ -323,36 +323,41 @@ class Doulist():
             ItemCrawler = Crawler()
             ItemCrawler.url = 'http://www.douban.com/doulist/%s/?start=%d&sort=seq' % (self.doulist_id, self.url_id*self.url_increment) 
             ItemCrawler.pattern = {'name':'div', 'attrs':{'class':'doulist-item'}}
-            ItemCrawler.retrive()
-            item_id = 1
-            # decide whether the crawler run into the end of the doulist
-            if ItemCrawler.content:
-                print '....there are %d items in this page %d' % (len(ItemCrawler.content), self.url_id+1) 
-                # crawl each books/movies item withn that doulist page
-                for foo in ItemCrawler.content:
-                    print '....processing page %d %s %d' % (self.url_id+1, self.item_type, item_id)
-                    try:
-                        # generate the crawler for the homepage of the corresponding book/movie
-                        SubCrawler = Crawler()
-                        SubCrawler.url = re.findall('<a href="(\S*)" target="_blank">', str(foo))[0]
-                        SubCrawler.pattern = {'name':'div', 'attrs':{'id':'wrapper'}}
-                        SubCrawler.retrive()    
-                        
-                        # for debugging
-                        global g_soup; g_soup = SubCrawler.content[0];
-                        
-                        # parse the BeautifulSoup Tag of the corresponding book/movie homepage
-                        self.item.parse(SubCrawler.content[0], SubCrawler.url)
-                    except:
-                        print '......failed'
-                    item_id += 1
-                self.url_id += 1
-            else:
-                # end of the crawling
-                print '..Done'
-                # output the doulist into txt file
-                self.item.write()
-                break
+            try:
+                ItemCrawler.retrive()
+                item_id = 1
+                # decide whether the crawler run into the end of the doulist
+                if ItemCrawler.content:
+                    print '....there are %d items in this page %d' % (len(ItemCrawler.content), self.url_id+1) 
+                    # crawl each books/movies item withn that doulist page
+                    for foo in ItemCrawler.content:
+                        print '....processing page %d %s %d' % (self.url_id+1, self.item_type, item_id)
+                        try:
+                            # generate the crawler for the homepage of the corresponding book/movie
+                            SubCrawler = Crawler()
+                            SubCrawler.url = re.findall('<a href="(\S*)" target="_blank">', str(foo))[0]
+                            SubCrawler.pattern = {'name':'div', 'attrs':{'id':'wrapper'}}
+                            SubCrawler.retrive()    
+                            
+                            # for debugging
+                            global g_soup; g_soup = SubCrawler.content[0];
+                            
+                            # parse the BeautifulSoup Tag of the corresponding book/movie homepage
+                            self.item.parse(SubCrawler.content[0], SubCrawler.url)
+                        except:
+                            print '......failed extract %s homepage' % self.item_type
+                        item_id += 1
+                    self.url_id += 1                         
+                else:
+                    # end of the crawling
+                    print '..Done'
+                    # output the doulist into txt file
+                    self.item.write()
+                    break
+            except:
+                    print 'open doulist url failed'
+                    info = sys.exc_info()
+                    print info[0], ':', info[1]                               
         return
     
 def debugger():
