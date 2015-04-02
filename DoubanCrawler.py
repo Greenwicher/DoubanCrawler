@@ -346,6 +346,81 @@ class Doulist():
                     info = sys.exc_info()
                     print(info[0], ':', info[1])
         return
+
+class Taglist():
+    ''' instruct how to crawl the tag list page'''
+    def __init__(self):
+        ''' define the basic property '''
+        self.tag = ''
+        self.url_id = 0
+        self.url_increment = 20
+        self.item_type = ''
+        return
+    
+    def init(self):
+        ''' obtain the type of the tag list and generate the corresponding item parser '''
+        self.tag = input('please enter the tag name\n')
+        while not(self.item_type in ['movies', 'books']):
+            self.item_type = input('please enter the type of the tag list\n (movies/books)\n')        
+        if self.item_type == 'movies':
+            self.item = Movie()
+        elif self.item_type == 'books':
+            self.item = Book()
+        return
+    
+    def retrive(self):
+        ''' retrieve information from many tag list pages '''
+        # repeat until the end of the doulist
+        while(1):
+            print('..processing page %d' % (self.url_id+1))
+            # generate the Crawler for a specificed doulist page and obtain the url of books/movies within that page
+            ItemCrawler = Crawler()
+            if self.item_type== 'movies':
+                ItemCrawler.url = 'http://movie.douban.com/tag/%s?start=%d&type=T' % (urllib.parse.quote(self.tag), self.url_id*self.url_increment) 
+                ItemCrawler.pattern = {'name':'table', 'attrs':{'width':'100%'}}            
+            else:
+                ItemCrawler.url = 'http://book.douban.com/tag/%s?start=%d&type=T' % (urllib.parse.quote(self.tag), self.url_id*self.url_increment) 
+                ItemCrawler.pattern = {'name':'li','attrs':{'class':'subject-item'}}                
+            try:
+                ItemCrawler.retrive()
+                item_id = 1
+                # decide whether the crawler run into the end of the doulist
+                if ItemCrawler.content:
+                    print('....there are %d items in this page %d' % (len(ItemCrawler.content), self.url_id+1))
+                    # crawl each books/movies item withn that doulist page
+                    for foo in ItemCrawler.content:
+                        print('....processing page %d %s %d' % (self.url_id+1, self.item_type, item_id))
+                        try:
+                            # generate the crawler for the homepage of the corresponding book/movie
+                            SubCrawler = Crawler()
+                            if self.item_type == "movies":                                
+                                SubCrawler.url = re.findall('<a class="nbg" href="(\S*)" title="\S*">', str(foo))[0]
+                            else:
+                                SubCrawler.url = re.findall('<a href="(\S*)" onclick=', str(foo))[0]
+                            SubCrawler.pattern = {'name':'div', 'attrs':{'id':'wrapper'}}
+                            SubCrawler.retrive()    
+                            
+                            # for debugging
+                            global g_soup; g_soup = SubCrawler.content[0];
+                            
+                            # parse the BeautifulSoup Tag of the corresponding book/movie homepage
+                            self.item.parse(SubCrawler.content[0], SubCrawler.url)
+                        except:
+                            print('......failed extract %s homepage' % self.item_type)
+                        item_id += 1
+                    self.url_id += 1                         
+                else:
+                    # end of the crawling
+                    print('..Done')
+                    # output the doulist into txt file
+                    self.item.write()
+                    break
+            except:
+                    print('open tag list url failed')
+                    info = sys.exc_info()
+                    print(info[0], ':', info[1])
+        return
+
     
 def debugger():
     ''' for debugging, return the soup content of the specificed homepage of book/movie'''
@@ -357,7 +432,21 @@ def debugger():
     soup = SubCrawler.content[0]
     return soup
 
- 
-Dou = Doulist()
-Dou.init()
-Dou.retrive()
+def main():
+    # check the user want to retrive information from doulist or tag list
+    dou_tag = input('Please enter the resource you want to retrive\n (doulist/tag)\n')
+    while(not(dou_tag in ['doulist','tag'])):
+        dou_tag = input('Invalid Input. Please enter the resource you want to retrive\n (doulist/tag)\n')
+    if dou_tag == 'doulist':
+        global Dou
+        Dou = Doulist()
+        Dou.init()
+        Dou.retrive()
+    elif dou_tag == 'tag':
+        global Tag
+        Tag = Taglist()
+        Tag.init()
+        Tag.retrive()
+
+if __name__ == "__main__":
+    main()
