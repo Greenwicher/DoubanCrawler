@@ -5,10 +5,9 @@ Created on Thu Jan  1 20:52:22 2015
 @author: liuweizhi
 """
 import os,sys
-import urllib2  
-import cookielib
+import urllib.request
 import re  
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 class Movie():
     ''' parse the html and retrive the basic information of movies list '''
@@ -34,82 +33,82 @@ class Movie():
         # url
         try:
             tmp.url = url
-            print tmp.url
+            print(tmp.url)
         except:
-            print '......missing url'
+            print('......missing url')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
         
         # title 
         try:
             tmp.title = soup.findAll('span', {'property':'v:itemreviewed'})[0].contents[0]
-            print tmp.title
+            print(tmp.title)
         except:
-            print '......missing title'
+            print('......missing title')
             info = sys.exc_info()
-            print info[0], ':', info[1]  
+            print(info[0], ':', info[1])
             
         # year
         try:
             tmp.year = str(re.findall('\((\d*)\)', soup.findAll('span', {'class':'year'})[0].contents[0])[0])
-            print tmp.year
+            print(tmp.year)
         except:
-            print '......missing year'
+            print('......missing year')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         # type
         try:
             type_list = [foo.contents[0] for foo in soup.findAll('span', {'property':'v:genre'})]
             tmp.type = '/'.join(type_list)
-            print tmp.type
+            print(tmp.type)
         except:
-            print '......missing type'
+            print('......missing type')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
         
         # country
         try:
             tmp.country = re.findall('<span class="pl">制片国家/地区:</span>(\D*)<br />\n<span class="pl">语言:</span>', str(soup))[0].strip()
-            print tmp.country
+            print(tmp.country)
         except:
-            print '.....missing country'
+            print('.....missing country')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
         
         # duration
         try:
             tmp.duration = str(re.findall('(\d*)[\S\s]*', soup.findAll('span', {'property':'v:runtime'})[0].contents[0])[0])
-            print tmp.duration
+            print(tmp.duration)
         except:
-            print '......missing duration'
+            print('......missing duration')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
         
         # abstract
         try:
             tmp.abstract = ''.join([str(foo).strip() for foo in soup.findAll('span', {'property':'v:summary'})[0].contents if str(foo)!='<br />'])
-            print tmp.abstract
+            print(tmp.abstract)
         except:
-            print '......missing abstract'
+            print('......missing abstract')
             
         # star
         try:
             tmp.star = str(soup.findAll('strong', {'class':'ll rating_num', 'property':'v:average'})[0].contents[0])
-            print tmp.star
+            print(tmp.star)
         except:
-            print '......missing star'
+            print('......missing star')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])              
             
         # votes
         try:
             tmp.votes = str(soup.findAll('span', {'property':'v:votes'})[0].contents[0])
-            print tmp.votes
+            print(tmp.votes)
         except:
-            print '......missing votes'
+            print('......missing votes')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         self.movies.append(tmp)
             
@@ -117,12 +116,9 @@ class Movie():
 
     def write(self):
         ''' write the movies doulist into a tab-aligned txt file'''
-        filename = raw_input('please enter the filename you like\n')
-        # change the default encoding format
-        reload(sys) 
-        sys.setdefaultencoding('utf-8')
+        filename = input('please enter the filename you like\n')
         base_dir = os.getcwd()
-        f_out = open(os.path.join(base_dir, '%s.txt' % filename), 'w')
+        f_out = open(os.path.join(base_dir, '%s.txt' % filename), 'w', encoding='utf-8')
         f_out.write('标题\t年份\t类型\t国家\t时长\t评分\t人数\t概括\t链接\n')
         for movie in self.movies:
             f_out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n' % 
@@ -130,9 +126,6 @@ class Movie():
                          str(movie.duration), str(movie.star), str(movie.votes), 
                          movie.abstract, movie.url))
         f_out.close()
-        # after changing the default encoding format into utf-8, the origin print function output nothing, so weired
-        reload(sys)
-        sys.setdefaultencoding('ascii')
         return
         
 class Book():
@@ -160,64 +153,64 @@ class Book():
         # url
         try:
             tmp.url = url
-            print tmp.url
+            print(tmp.url)
         except:
-            print '......missing url'
+            print('......missing url')
             
         # title
         try:
             tmp.title = soup.findAll('span', {'property':'v:itemreviewed'})[0].contents[0].strip()
-            print tmp.title
+            print(tmp.title)
         except:
-            print '......missing title'
+            print('......missing title')
             
         # author
         try:
             author_list_html = re.split('\s+/\s+', re.findall('<span class="pl"> 作者</span>:([\S\s]*)<span class="pl">出版社:</span>', str(soup))[0])
             author_list = [re.findall('<a class="" href="/search/\S*">([\S\s]*)</a>', foo)[0].strip() for foo in author_list_html]
             tmp.author = '/'.join(author_list)
-            print tmp.author
+            print(tmp.author)
         except:
-            print '......missing author'
+            print('......missing author')
             info = sys.exc_info()
-            print info[0], ':', info[1]            
+            print(info[0], ':', info[1])
             
         # publisher
         try:
             publisher_tuple = re.findall('<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">副标题|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">原作名|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span>\s*<span class="pl"> 译者|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">出版年', str(soup))[0]
             tmp.publisher = [foo for foo in publisher_tuple if foo][0].strip()
             #tmp.publisher = re.findall('<span class="pl">出版社:</span>([\S\s]*)<br />', str(soup))[0].strip()
-            print tmp.publisher
+            print(tmp.publisher)
         except:
-            print '......missing publisher'
+            print('......missing publisher')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         # year
         try:
             year_tuple = re.findall('<span class="pl">出版年:</span>([\S\s]*)<br />\s*<span class="pl">页数:</span>|<span class="pl">出版年:</span>([\S\s]*)<br />\s*<span class="pl">定价:</span>', str(soup))[0]
             tmp.year = str(re.split('\D+', [foo for foo in year_tuple if foo][0].strip())[0])[0:4]
-            print tmp.year
+            print(tmp.year)
         except:
-            print '......missing year'
+            print('......missing year')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         # pages
         try:
             tmp.pages = str(re.findall('<span class="pl">页数:</span>\s*(\d*)[\S\s]*<br />\s*<span class="pl">定价:</span>', str(soup))[0])
-            print tmp.pages
+            print(tmp.pages)
         except:
-            print '......missing page'
+            print('......missing page')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         # isbn
         try:
             tmp.isbn = re.findall('<span class="pl">ISBN:</span>\s*(\S*)\s*<br />', str(soup))[0].strip()
-            print tmp.isbn
+            print(tmp.isbn)
         except:
-            print '......missing isbn'
+            print('......missing isbn')
             
         # star
         try:
@@ -225,40 +218,38 @@ class Book():
             # deal with the books with no star
             if not tmp.star:
                 tmp.star = '-'
-            print tmp.star
+            print(tmp.star)
         except:
-            print '......missing star'
+            print('......missing star')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         # votes
         try:
             tmp.votes = str(soup.findAll('span', {'property':'v:votes'})[0].contents[0])
-            print tmp.votes
+            print(tmp.votes)
         except:
-            print '......missing votes'
+            print('......missing votes')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
             
         # abstract
         try:
             tmp.abstract = str(''.join(map(str, soup.findAll('div', {'class':'intro'})[0].contents))).replace('<p>','').replace('</p>','').replace('\n','').replace('\r', '').strip()
-            print tmp.abstract            
+            print(tmp.abstract)
         except:
-            print '......missing abstract'
+            print('......missing abstract')
             info = sys.exc_info()
-            print info[0], ':', info[1]              
+            print(info[0], ':', info[1])
                 
         self.books.append(tmp)
         return
 
     def write(self):
         ''' write the books doulist into a tab-aligned txt file'''
-        filename = raw_input('please enter the filename you like\n')        
-        reload(sys) 
-        sys.setdefaultencoding('utf-8')
+        filename = input('please enter the filename you like\n')        
         base_dir = os.getcwd()
-        f_out = open(os.path.join(base_dir, '%s.txt' % filename), 'w')
+        f_out = open(os.path.join(base_dir, '%s.txt' % filename), 'w', encoding='utf-8')
         f_out.write('标题\t作者\t出版社\t出版年\t页数\tISBN\t评分\t人数\t链接\t摘要\n')
         for book in self.books:
             f_out.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n' % 
@@ -266,8 +257,6 @@ class Book():
                          str(book.pages), book.isbn, str(book.star), str(book.votes),
                          book.url, book.abstract))
         f_out.close()
-        reload(sys)
-        sys.setdefaultencoding('ascii')
         return        
         
 class Crawler():
@@ -278,16 +267,14 @@ class Crawler():
         self.html = ''
         self.soup = ''
         self.content = ''
-        self.cookie = cookielib.CookieJar()
-        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cookie))
         return
         
     def retrive(self):
         ''' retrieve the url for specified item in a given page '''
         try:
-            issue = self.opener.open(self.url)
+            issue = urllib.request.urlopen(self.url)
         except:
-            print 'open url (%s) failed' % self.url
+            print('open url (%s) failed' % self.url)
         self.html = issue.read()
         self.soup = BeautifulSoup(self.html)
         self.content = self.soup.findAll(**self.pattern)
@@ -305,9 +292,9 @@ class Doulist():
     
     def init(self):
         ''' obtain the type of the doulist and generate the corresponding item parser '''
-        self.doulist_id = raw_input('please enter the id of the doulist\n')
+        self.doulist_id = input('please enter the id of the doulist\n')
         while not(self.item_type in ['movies', 'books']):
-            self.item_type = raw_input('please enter the type of the doulist\n (movies/books)\n')        
+            self.item_type = input('please enter the type of the doulist\n (movies/books)\n')        
         if self.item_type == 'movies':
             self.item = Movie()
         elif self.item_type == 'books':
@@ -318,7 +305,7 @@ class Doulist():
         ''' retrieve information from many doulist pages '''
         # repeat until the end of the doulist
         while(1):
-            print '..processing page %d' % (self.url_id+1)
+            print('..processing page %d' % (self.url_id+1))
             # generate the Crawler for a specificed doulist page and obtain the url of books/movies within that page
             ItemCrawler = Crawler()
             ItemCrawler.url = 'http://www.douban.com/doulist/%s/?start=%d&sort=seq' % (self.doulist_id, self.url_id*self.url_increment) 
@@ -328,10 +315,10 @@ class Doulist():
                 item_id = 1
                 # decide whether the crawler run into the end of the doulist
                 if ItemCrawler.content:
-                    print '....there are %d items in this page %d' % (len(ItemCrawler.content), self.url_id+1) 
+                    print('....there are %d items in this page %d' % (len(ItemCrawler.content), self.url_id+1))
                     # crawl each books/movies item withn that doulist page
                     for foo in ItemCrawler.content:
-                        print '....processing page %d %s %d' % (self.url_id+1, self.item_type, item_id)
+                        print('....processing page %d %s %d' % (self.url_id+1, self.item_type, item_id))
                         try:
                             # generate the crawler for the homepage of the corresponding book/movie
                             SubCrawler = Crawler()
@@ -345,24 +332,24 @@ class Doulist():
                             # parse the BeautifulSoup Tag of the corresponding book/movie homepage
                             self.item.parse(SubCrawler.content[0], SubCrawler.url)
                         except:
-                            print '......failed extract %s homepage' % self.item_type
+                            print('......failed extract %s homepage' % self.item_type)
                         item_id += 1
                     self.url_id += 1                         
                 else:
                     # end of the crawling
-                    print '..Done'
+                    print('..Done')
                     # output the doulist into txt file
                     self.item.write()
                     break
             except:
-                    print 'open doulist url failed'
+                    print('open doulist url failed')
                     info = sys.exc_info()
-                    print info[0], ':', info[1]                               
+                    print(info[0], ':', info[1])
         return
     
 def debugger():
     ''' for debugging, return the soup content of the specificed homepage of book/movie'''
-    url = raw_input('please enter the url of the homepage\n')
+    url = input('please enter the url of the homepage\n')
     SubCrawler = Crawler()
     SubCrawler.url = url
     SubCrawler.pattern = {'name':'div', 'attrs':{'id':'wrapper'}}
