@@ -157,6 +157,15 @@ class Book():
         except:
             print('......missing url')
             
+        # all span container and theri next_sibling
+        span_pl=soup.findAll('span',{'class':'pl'})
+        span={}
+        for foo in span_pl:
+            try:
+                span[foo.text.strip().replace(':','')]=foo.next_sibling.strip()
+            except:
+                continue
+            
         # title
         try:
             tmp.title = soup.findAll('span', {'property':'v:itemreviewed'})[0].contents[0].strip()
@@ -177,9 +186,10 @@ class Book():
             
         # publisher
         try:
-            publisher_tuple = re.findall('<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">副标题|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">原作名|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span>\s*<span class="pl"> 译者|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">出版年', str(soup))[0]
-            tmp.publisher = [foo for foo in publisher_tuple if foo][0].strip()
-            #tmp.publisher = re.findall('<span class="pl">出版社:</span>([\S\s]*)<br />', str(soup))[0].strip()
+#            publisher_tuple = re.findall('<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">副标题|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">原作名|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span>\s*<span class="pl"> 译者|<span class="pl">出版社:</span>([\S\s]*)<br />\s*<span class="pl">出版年', str(soup))[0]
+#            tmp.publisher = [foo for foo in publisher_tuple if foo][0].strip()
+#            #tmp.publisher = re.findall('<span class="pl">出版社:</span>([\S\s]*)<br />', str(soup))[0].strip()
+            tmp.publisher = span['出版社']
             print(tmp.publisher)
         except:
             print('......missing publisher')
@@ -188,8 +198,9 @@ class Book():
             
         # year
         try:
-            year_tuple = re.findall('<span class="pl">出版年:</span>([\S\s]*)<br />\s*<span class="pl">页数:</span>|<span class="pl">出版年:</span>([\S\s]*)<br />\s*<span class="pl">定价:</span>', str(soup))[0]
-            tmp.year = str(re.split('\D+', [foo for foo in year_tuple if foo][0].strip())[0])[0:4]
+#            year_tuple = re.findall('<span class="pl">出版年:</span>([\S\s]*)<br />\s*<span class="pl">页数:</span>|<span class="pl">出版年:</span>([\S\s]*)<br />\s*<span class="pl">定价:</span>', str(soup))[0]
+#            tmp.year = str(re.split('\D+', [foo for foo in year_tuple if foo][0].strip())[0])[0:4]
+            tmp.year = span['出版年'].strip()[0:4]
             print(tmp.year)
         except:
             print('......missing year')
@@ -198,7 +209,8 @@ class Book():
             
         # pages
         try:
-            tmp.pages = str(re.findall('<span class="pl">页数:</span>\s*(\d*)[\S\s]*<br />\s*<span class="pl">定价:</span>', str(soup))[0])
+#            tmp.pages = str(re.findall('<span class="pl">页数:</span>\s*(\d*)[\S\s]*<br />\s*<span class="pl">定价:</span>', str(soup))[0])
+            tmp.pages = span['页数'].strip()
             print(tmp.pages)
         except:
             print('......missing page')
@@ -207,7 +219,8 @@ class Book():
             
         # isbn
         try:
-            tmp.isbn = re.findall('<span class="pl">ISBN:</span>\s*(\S*)\s*<br />', str(soup))[0].strip()
+#            tmp.isbn = re.findall('<span class="pl">ISBN:</span>\s*(\S*)\s*<br />', str(soup))[0].strip()
+            tmp.isbn = span['ISBN'].strip()
             print(tmp.isbn)
         except:
             print('......missing isbn')
@@ -430,12 +443,18 @@ def debugger():
     SubCrawler.pattern = {'name':'div', 'attrs':{'id':'wrapper'}}
     SubCrawler.retrive()
     soup = SubCrawler.content[0]
+    debug_type=input("Please the type of the object for debugging\n (books/moives)\n")
+    if debug_type=="books":
+        debug_obj = Book()
+    else:
+        debug_obj = Movie()
+    debug_obj.parse(soup,url)
     return soup
 
 def main():
     # check the user want to retrive information from doulist or tag list
     dou_tag = input('Please enter the resource you want to retrive\n (doulist/tag)\n')
-    while(not(dou_tag in ['doulist','tag'])):
+    while(not(dou_tag in ['doulist','tag','d'])):
         dou_tag = input('Invalid Input. Please enter the resource you want to retrive\n (doulist/tag)\n')
     if dou_tag == 'doulist':
         global Dou
@@ -447,6 +466,9 @@ def main():
         Tag = Taglist()
         Tag.init()
         Tag.retrive()
+    elif dou_tag == 'd':
+        global soup
+        soup=debugger()
 
 if __name__ == "__main__":
     main()
