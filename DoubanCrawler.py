@@ -368,6 +368,7 @@ class Taglist():
         self.url_id = 0
         self.url_increment = 20
         self.item_type = ''
+        self.max_try = 10
         return
     
     def init(self):
@@ -383,6 +384,7 @@ class Taglist():
     
     def retrive(self):
         ''' retrieve information from many tag list pages '''
+        num_try = 0
         # repeat until the end of the doulist
         while(1):
             print('..processing page %d' % (self.url_id+1))
@@ -431,7 +433,10 @@ class Taglist():
             except:
                     print('open tag list url failed')
                     info = sys.exc_info()
-                    print(info[0], ':', info[1])
+                    print('Trials : %d'%num_try,' - ', info[0], ':', info[1])
+                    num_try+=1
+                    if num_try>self.max_try:
+                        return
         return
 
     
